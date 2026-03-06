@@ -1,0 +1,24 @@
+{
+  "name": "crisis-monitor",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0",
+    "vitest": "^2.1.9"
+  },
+  "scripts": {
+    "dev:api": "tsx scripts/dev-api.ts",
+    "dev:web": "npm run -w @crisis-monitor/web dev --",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\"",
+    "smoke:events": "vitest -c vitest.config.ts run scripts/smoke-events.test.ts",
+    "build": "npm run -w @crisis-monitor/web build",
+    "lint": "npm run --workspaces lint",
+    "typecheck": "npm run --workspaces typecheck",
+    "test": "vitest -c vitest.config.ts run"
+  }
+}
