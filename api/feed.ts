@@ -1,5 +1,6 @@
 import { ingest } from './_lib/ingestion';
 import type { CrisisLayer, FeedResponse } from './_lib/types';
+import { deduplicateEvents, getDeduplicationStats } from './intelligence/deduplicateEvents';
 
 const DEFAULT_LAYERS: CrisisLayer[] = ['earthquakes', 'wildfires', 'floods', 'storms', 'conflicts', 'airspace', 'volcanoes'];
 
@@ -21,7 +22,19 @@ export default async function handler(req: Request): Promise<Response> {
 
   const limit = Math.max(50, Math.min(10_000, Number(url.searchParams.get('limit') ?? 2000) || 2000));
 
-  const events = await ingest(layers);
+  // Fetch all events from sources
+  const rawEvents = await ingest(layers);
+  
+  // Deduplicate events (remove duplicates from multiple sources)
+  // Distance < 100km, Time < 6h, Same layer type
+  const events = deduplicateEvents(rawEvents, 100, 6);
+  
+  // Log deduplication stats in dev mode
+  if (process.env.NODE_ENV !== 'production') {
+    const stats = getDeduplicationStats(rawEvents, events);
+    console.log(`[Deduplication] ${stats.originalCount} → ${stats.deduplicatedCount} events (removed ${stats.duplicatesRemoved}, ${Math.round(stats.deduplicationRate * 100)}%)`);
+  }
+  
   const limited = events
     .sort((a, b) => b.severityScore - a.severityScore)
     .slice(0, limit);

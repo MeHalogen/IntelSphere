@@ -11,6 +11,14 @@ import { URL } from 'node:url';
 import eventsHandler from '../api/events';
 import feedHandler from '../api/feed';
 import aiBriefHandler from '../api/ai/brief';
+import flightsHandler from '../api/flights';
+import globalRiskHandler from '../api/intelligence/global-risk';
+import hotspotsHandler from '../api/intelligence/hotspots-api';
+import trendsHandler from '../api/intelligence/trends-api';
+import correlationsHandler from '../api/intelligence/correlations';
+import signalsHandler from '../api/intelligence/signals';
+import timelineHandler from '../api/intelligence/timeline-api';
+import globalBriefHandler from '../api/ai/global-brief-api';
 
 type EdgeHandler = (req: Request) => Promise<Response>;
 
@@ -18,6 +26,14 @@ const routes: Array<{ path: string; handler: EdgeHandler }> = [
   { path: '/api/events', handler: eventsHandler as unknown as EdgeHandler },
   { path: '/api/feed', handler: feedHandler as unknown as EdgeHandler },
   { path: '/api/ai/brief', handler: aiBriefHandler as unknown as EdgeHandler },
+  { path: '/api/flights', handler: flightsHandler as unknown as EdgeHandler },
+  { path: '/api/intelligence/global-risk', handler: globalRiskHandler as unknown as EdgeHandler },
+  { path: '/api/intelligence/hotspots-api', handler: hotspotsHandler as unknown as EdgeHandler },
+  { path: '/api/intelligence/trends-api', handler: trendsHandler as unknown as EdgeHandler },
+  { path: '/api/intelligence/correlations', handler: correlationsHandler as unknown as EdgeHandler },
+  { path: '/api/intelligence/signals', handler: signalsHandler as unknown as EdgeHandler },
+  { path: '/api/intelligence/timeline-api', handler: timelineHandler as unknown as EdgeHandler },
+  { path: '/api/ai/global-brief-api', handler: globalBriefHandler as unknown as EdgeHandler },
 ];
 
 async function callEdgeHandler(handler: EdgeHandler, nodeReq: http.IncomingMessage, urlObj: URL): Promise<Response> {
@@ -62,7 +78,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Match a route
-  const route = routes.find((r) => pathname === r.path);
+  const route = routes.find((r) => pathname === r.path || pathname.startsWith(r.path + '?'));
   if (!route) {
     res.statusCode = 404;
     res.setHeader('content-type', 'application/json');

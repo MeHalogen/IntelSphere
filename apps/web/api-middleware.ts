@@ -24,21 +24,41 @@ export function apiMiddleware() {
 
         try {
           let handler;
+          let modulePath;
 
+          // Map URL paths to file paths
           if (path === '/api/events') {
-            const mod = await server.ssrLoadModule(resolve(REPO_ROOT, 'api/events.ts'));
-            handler = mod.default;
+            modulePath = 'api/events.ts';
           } else if (path === '/api/feed') {
-            const mod = await server.ssrLoadModule(resolve(REPO_ROOT, 'api/feed.ts'));
-            handler = mod.default;
-          } else if (path === '/api/ai/brief') {
-            const mod = await server.ssrLoadModule(resolve(REPO_ROOT, 'api/ai/brief.ts'));
+            modulePath = 'api/feed.ts';
+          } else if (path === '/api/ai/brief' || path.startsWith('/api/ai/brief?')) {
+            modulePath = 'api/ai/brief.ts';
+          } else if (path === '/api/ai/global-brief-api' || path.startsWith('/api/ai/global-brief-api?')) {
+            modulePath = 'api/ai/global-brief-api.ts';
+          } else if (path === '/api/flights' || path.startsWith('/api/flights?')) {
+            modulePath = 'api/flights.ts';
+          } else if (path === '/api/intelligence/global-risk' || path.startsWith('/api/intelligence/global-risk?')) {
+            modulePath = 'api/intelligence/global-risk.ts';
+          } else if (path === '/api/intelligence/hotspots-api' || path.startsWith('/api/intelligence/hotspots-api?')) {
+            modulePath = 'api/intelligence/hotspots-api.ts';
+          } else if (path === '/api/intelligence/trends-api' || path.startsWith('/api/intelligence/trends-api?')) {
+            modulePath = 'api/intelligence/trends-api.ts';
+          } else if (path === '/api/intelligence/correlations' || path.startsWith('/api/intelligence/correlations?')) {
+            modulePath = 'api/intelligence/correlations.ts';
+          } else if (path === '/api/intelligence/signals' || path.startsWith('/api/intelligence/signals?')) {
+            modulePath = 'api/intelligence/signals.ts';
+          } else if (path === '/api/intelligence/timeline-api' || path.startsWith('/api/intelligence/timeline-api?')) {
+            modulePath = 'api/intelligence/timeline-api.ts';
+          }
+
+          if (modulePath) {
+            const mod = await server.ssrLoadModule(resolve(REPO_ROOT, modulePath));
             handler = mod.default;
           }
 
           if (!handler) {
             res.statusCode = 404;
-            res.end(JSON.stringify({ error: 'Not found' }));
+            res.end(JSON.stringify({ error: 'Not found', path }));
             return;
           }
 

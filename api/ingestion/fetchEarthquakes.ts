@@ -1,6 +1,7 @@
 import { fetchJson } from './fetchUtils';
 import type { CrisisEvent } from './types';
 import { getSeverity } from '../_lib/scoring';
+import { calculateConfidenceScore, inferDataQualityIndicators } from '../_lib/confidence';
 
 type UsgsGeoJson = {
   features?: Array<{
@@ -51,14 +52,17 @@ export async function fetchEarthquakes(): Promise<CrisisEvent[]> {
         url: typeof p.url === 'string' ? p.url : undefined,
         news: typeof p.url === 'string' ? p.url : undefined
       }
-    } satisfies Omit<CrisisEvent, 'severityScore' | 'severityLabel'>;
+    } satisfies Omit<CrisisEvent, 'severityScore' | 'severityLabel' | 'confidenceScore'>;
 
     const sev = getSeverity(base);
+    const indicators = inferDataQualityIndicators(base);
+    const confidence = calculateConfidenceScore(base, indicators);
 
     events.push({
       ...base,
       severityScore: sev.severityScore,
-      severityLabel: sev.severityLabel
+      severityLabel: sev.severityLabel,
+      confidenceScore: confidence
     });
   }
 
