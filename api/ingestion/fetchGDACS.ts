@@ -1,6 +1,7 @@
 import { fetchText } from './fetchUtils';
 import type { CrisisEvent, CrisisLayer } from './types';
 import { getSeverity } from '../_lib/scoring';
+import { calculateConfidenceScore, inferDataQualityIndicators } from '../_lib/confidence';
 
 function matchTag(xmlSnippet: string, tagName: string): string {
   const re = new RegExp(`<${escapeReg(tagName)}>([\\s\\S]*?)</${escapeReg(tagName)}>`);
@@ -83,14 +84,17 @@ export async function fetchGDACS(): Promise<CrisisEvent[]> {
         url: link || undefined,
         news: link || undefined
       }
-    } satisfies Omit<CrisisEvent, 'severityScore' | 'severityLabel'>;
+    } satisfies Omit<CrisisEvent, 'severityScore' | 'severityLabel' | 'confidenceScore'>;
 
     const sev = getSeverity(base);
+    const indicators = inferDataQualityIndicators(base);
+    const confidence = calculateConfidenceScore(base, indicators);
 
     out.push({
       ...base,
       severityScore: sev.severityScore,
-      severityLabel: sev.severityLabel
+      severityLabel: sev.severityLabel,
+      confidenceScore: confidence
     });
   }
 

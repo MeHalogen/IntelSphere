@@ -19,6 +19,7 @@ export type CrisisEvent = {
   place?: string;
   severityScore: number;
   severityLabel: 'low' | 'medium' | 'high' | 'critical';
+  confidenceScore: number; // 0.0-1.0: Data source reliability/quality
   metrics?: Record<string, number | string | boolean | null>;
   links?: {
     url?: string;

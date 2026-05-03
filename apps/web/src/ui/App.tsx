@@ -3,6 +3,7 @@ import useSWR from 'swr';
 import { MapView } from './MapView';
 import { EventsPanel } from './EventsPanel';
 import { IntelligencePanel } from './IntelligencePanel';
+import { IntelligenceDashboard } from './IntelligenceDashboard';
 import { useUiStore } from './store';
 import type { CrisisEvent, FeedResponse } from '../core/types';
 import { onEventsUpdated, startPolling, stopPolling } from '../data/pollEvents';
@@ -12,7 +13,7 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 export function App() {
   const { activeLayers, selectedEventId, selectEvent, events: polledEvents, eventsUpdatedAt, setEvents } = useUiStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [tab, setTab] = useState<'events' | 'details'>('events');
+  const [tab, setTab] = useState<'events' | 'details' | 'intelligence'>('events');
 
   const { data: feed } = useSWR<FeedResponse>(
     `/api/feed?layers=${encodeURIComponent(activeLayers.join(','))}&limit=5000`,
@@ -99,6 +100,12 @@ export function App() {
               🌍 Events
             </button>
             <button
+              className={`cm-tab${tab === 'intelligence' ? ' active' : ''}`}
+              onClick={() => setTab('intelligence')}
+            >
+              🧠 Intelligence
+            </button>
+            <button
               className={`cm-tab${tab === 'details' ? ' active' : ''}`}
               onClick={() => setTab('details')}
               disabled={!selected}
@@ -114,6 +121,9 @@ export function App() {
                 onPick={handlePick}
                 selectedEventId={selectedEventId}
               />
+            )}
+            {tab === 'intelligence' && (
+              <IntelligenceDashboard />
             )}
             {tab === 'details' && selected && (
               <div className="cm-details-view">

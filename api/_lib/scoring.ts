@@ -70,7 +70,16 @@ function eventSeveritySignal(e: Omit<CrisisEvent, 'severityScore' | 'severityLab
 
   if (e.layer === 'airspace') {
     const count = Number(metrics.aircraftCount ?? 0);
-    // log scale: 10->~0.5, 100->~1
+    const anomalyScore = Number(metrics.anomalyScore ?? 0); // Standard deviations above mean
+    
+    // Severity based on statistical anomaly strength
+    // 2σ = 0.5, 3σ = 0.65, 4σ = 0.8, 5σ+ = 0.9
+    if (anomalyScore >= 2) {
+      const sig = Math.min(0.9, 0.5 + (anomalyScore - 2) * 0.15);
+      return sig;
+    }
+    
+    // Fallback: log scale for raw count
     const sig = clamp01(Math.log10(Math.max(1, count)) / 2);
     return sig;
   }
